@@ -16,6 +16,10 @@ pygame.mixer.init()
 
 # Create function to deal with the time
 def play_time():
+    # Check to see if the song is stopped
+    if stopped:
+        return
+
     # Gran current song time
     current_time = pygame.mixer.music.get_pos() / 1000
     # Convert song time to time format
@@ -31,8 +35,30 @@ def play_time():
     song_length = song_mut.info.length
     converted_song_length = time.strftime('%M:%S', time.gmtime(song_length))
 
+    song_slider.config(to=song_length)
+
+    # Check to see if song is over
+    if int(song_slider.get()) == int(song_length):
+        stop()
+
+    elif paused:
+        # Check to see if paused, if so - end
+       pass
+
+    else:
+        # Move slider along 1 second at a time
+        next_time = int(song_slider.get()) + 1
+        # Output new time value to slider, and to length of song
+        song_slider.config(to=song_length, value=next_time)
+
+    # Convert slider position to time format
+    converted_current_time = time.strftime('%M:%S', time.gmtime(int(song_slider.get())))
+
+    # Output Slider
+    status_bar.config(text='Time Elapsed: %s of %s'%(converted_current_time, converted_song_length))
+
     # Add converted time to status bar
-    if current_time >= 1:
+    if current_time >= 0:
         status_bar.config(text='Time Elapsed: %s of %s'%(converted_current_time, converted_song_length))
 
     # Create loop to check the time every second
@@ -67,6 +93,11 @@ def delete_all_songs():
 
 # Create play function
 def play():
+
+    # Set stopped to false
+    global stopped
+    stopped = False
+
     song = playlist_box.get(ACTIVE)
     song = '%s/audios/%s.mp3'%(os.getcwd(), song)
 
@@ -77,6 +108,10 @@ def play():
     # Get Song Time
     play_time()
 
+# Create stopped variable
+global stopped
+stopped = False
+
 # Create Stop Function
 def stop():
     pygame.mixer.music.stop()
@@ -84,8 +119,19 @@ def stop():
     playlist_box.select_clear(ACTIVE)
     status_bar.config(text='')
 
+    # Set our slider to zero
+    song_slider.config(value=0)
+
+    # Set stop variable to True
+    global stopped
+    stopped=True
+
 # Create function to play previous song
 def back():
+    # Reset slider position and status bar
+    status_bar.config(text='')
+    song_slider.config(value=0)
+
     # get current song number
     next_one = playlist_box.curselection()
     #  Add one to current number
@@ -111,6 +157,10 @@ def back():
 
 # Create Next song function
 def forward():
+    # Reset slider position and status bar
+    status_bar.config(text='')
+    song_slider.config(value=0)
+
     # get current song number
     next_one = playlist_box.curselection()
     #  Add one to current number
@@ -160,7 +210,7 @@ def volume(x):
 
 # Create a Slide Function For Song Positioning
 def slide(x):
-    # Reconstruct song with directory structure stuff
+    # Reconstruct song with directory
     song = playlist_box.get(ACTIVE)
     song = '%s/audios/%s.mp3'%(os.getcwd(), song)
 
@@ -185,6 +235,11 @@ volume_frame.grid(row=0, column=1, padx=30)
 # Create Volume Slider
 volume_slider = ttk.Scale(volume_frame, from_=0, to=1, orient=VERTICAL, length=125, value=1, command=volume)
 volume_slider.pack(pady=10)
+
+# Create Song Slider
+song_slider = ttk.Scale(main_frame, from_=0, to=100, orient=HORIZONTAL, length=360, value=0, command=slide)
+song_slider.grid(row=2, column=0, pady=20)
+
 
 # Define Button Images for controls
 back_btn_img = PhotoImage(file='images/back50.png')
