@@ -20,5 +20,7 @@ Course Link
 * brew tap homebrew/headonly
 * brew install smpeg
 * pip install pygame
+* pip install mutagen
+
 
 ---
